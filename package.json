@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "eslint \"./**/*.{ts,js}\"",
     "build-tests": "esbuild test/index.ts --target=es2020 --bundle --keep-names > test/test-bundle.js",
-    "test": "npm run lint && npm run build && npm run build-tests && npm run test-tape-run",
+    "test": "esbuild ./src/index.ts --format=esm --platform=node --bundle > src/index.js && bash -c 'cd ./test && npx esbuild index.ts --platform=node --format=esm | node --input-type=module' | tap-spec",
+    "test:browser": "npm run lint && npm run build && npm run build-tests && npm run test-tape-run",
     "test-tape-run": "cat test/index.html | tape-run --input=html --static=test | tap-spec",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.cjs --sourcemap",
     "build-cjs:min": "esbuild src/*.ts --format=cjs --minify --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.min.cjs --sourcemap",
@@ -25,7 +26,13 @@
     "postversion": "git push --follow-tags && npm publish",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@bicycle-codes/one-webcrypto": "^1.1.2",
+    "@noble/ciphers": "^1.0.0",
+    "@noble/curves": "^1.6.0",
+    "@noble/hashes": "^1.5.0",
+    "uint8arrays": "^5.1.0"
+  },
   "devDependencies": {
     "@bicycle-codes/debug": "^0.6.13",
     "@bicycle-codes/tapzero": "^0.10.3",
@@ -33,6 +40,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "auto-changelog": "^2.4.0",
+    "dotenv": "^16.4.5",
     "esbuild": "^0.24.0",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
