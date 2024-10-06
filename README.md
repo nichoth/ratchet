@@ -1,4 +1,4 @@
-# package name here
+# ratchet
 ![tests](https://github.com/nichoth/ratchet/actions/workflows/nodejs.yml/badge.svg)
 [![types](https://img.shields.io/npm/types/@nichoth/ratcher?style=flat-square)](README.md)
 [![module](https://img.shields.io/badge/module-ESM%2FCJS-blue?style=flat-square)](README.md)
