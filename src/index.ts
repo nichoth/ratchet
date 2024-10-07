@@ -8,6 +8,9 @@ import type { DID } from '@bicycle-codes/crypto-util/types'
 // import { createDebug } from '@bicycle-codes/debug'
 // const debug = createDebug()
 const NONCE_SIZE = 24
+const KEY_SIZE = 32
+
+export type { DID }
 
 export interface Keys {
     privateKey:Uint8Array;
@@ -32,12 +35,12 @@ function createRandom (length?:number) {
 }
 
 /**
- * Create a new x25519 keypair.
+ * Create a new 25519 keypair.
  *
  * @param seed Private key material
  * @returns {keys} A new keypair
  */
-export function create (seed:Uint8Array = createRandom(NONCE_SIZE)):Keys {
+export function create (seed:Uint8Array = createRandom(KEY_SIZE)):Keys {
     const sk = sha256(seed)
     const pk = x25519.scalarMultBase(sk)
 
@@ -194,12 +197,15 @@ export function getSecret (
     info?:string
 ):Uint8Array {
     const { privateKey } = keypair
+    const privKey = typeof privateKey === 'string' ?
+        fromString(privateKey, 'base64pad') :
+        privateKey
 
     const pub = typeof _pub === 'string' ? fromString(_pub, 'base64pad') : _pub
 
     const newSecret = hkdf(
         sha256,
-        x25519.getSharedSecret(privateKey, pub),
+        x25519.getSharedSecret(privKey, pub),
         undefined,
         info,
         32
