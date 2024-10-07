@@ -13,8 +13,6 @@ import {
     decryptMsg,
     type Message
 } from '../src/index.js'
-// import Debug from '@bicycle-codes/debug'
-// const debug = Debug('test')
 
 let alice:Keys
 let bob:Keys
