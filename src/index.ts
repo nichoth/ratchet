@@ -1,4 +1,9 @@
-import { x25519 } from '@noble/curves/ed25519'
+import {
+    x25519,
+    edwardsToMontgomeryPub,
+    edwardsToMontgomeryPriv,
+    ed25519
+} from '@noble/curves/ed25519'
 import { xchacha20poly1305 } from '@noble/ciphers/chacha'
 import { sha256 } from '@noble/hashes/sha2'
 import { hkdf } from '@noble/hashes/hkdf'
@@ -23,6 +28,33 @@ export interface Keys {
 export interface SerializedKeys {
     privateKey:string;
     publicKey:string;
+}
+
+/**
+ * Create a new Edwards keypair.
+ *
+ * @returns {{ privateKey:Uint8Array, publicKey:Uint8Array }}
+ */
+export function createEd ():Keys {
+    const priv = ed25519.utils.randomPrivateKey()
+    const pub = ed25519.getPublicKey(priv)
+
+    return { privateKey: priv, publicKey: pub }
+}
+
+/**
+ * @see {@link https://github.com/paulmillr/noble-curves#ed25519-x25519-ristretto255 noble docs}
+ * >   ed25519 => x25519 conversion
+ *
+ * Use Edwards keys for signatures, x25519 for Diffie-Hellman/encryption
+ * @param edKeys The Edwards keypair
+ * @returns {Keys} The x25519 keypair
+ */
+export function edToCurve (edKeys:Keys):Keys {
+    return {
+        publicKey: edwardsToMontgomeryPub(edKeys.publicKey),
+        privateKey: edwardsToMontgomeryPriv(edKeys.privateKey)
+    }
 }
 
 /**
@@ -147,8 +179,17 @@ export function encrypt (
     return toString(new Uint8Array([...nonce, ...encrypted]), 'base64pad')
 }
 
-export function decryptMsg (msg:Message, keypair:Keys):Message {
-    const secret = getSecret(keypair, msg.keys.publicKey)
+/**
+ * This decrypts a message given the message + the "next" keypair.
+ * (The keypair that is next in the sequence of msgs vs keys)
+ */
+export function decryptMsg (
+    msg:Message,
+    keypair:Keys,
+    publicKey?:Uint8Array|string
+):Message {
+    // should be public in prev msg + new private
+    const secret = getSecret(keypair, publicKey || msg.keys.publicKey)
     const cipherText = fromString(msg.body.text, 'base64pad')
     const nonce = cipherText.slice(0, NONCE_SIZE)
     const cipherBytes = cipherText.slice(NONCE_SIZE)  // slice 24 -> end

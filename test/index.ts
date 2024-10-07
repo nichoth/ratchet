@@ -11,7 +11,9 @@ import {
     decrypt,
     message,
     decryptMsg,
-    type Message
+    type Message,
+    edToCurve,
+    createEd
 } from '../src/index.js'
 
 let alice:Keys
@@ -47,7 +49,7 @@ test('decrypt the string', t => {
     t.equal(plainText, 'hello, world of chacha', 'should decrypt the message')
 })
 
-let msg:Message
+let msg:Message  // a message from Alice to Bob
 let msgOneAlicesKeys:Keys
 let alicesDid:DID
 test('encrypt a message', t => {
@@ -95,12 +97,15 @@ test("Alice can decrypt Bob's new message", t => {
 })
 
 let msgThree:Message
+let msgThreeAlicesKeys:Keys
 test('Alice ratchets the messages', t => {
-    [msgThree] = message(
+    const [_msgThree, { keys }] = message(
         'hello number three',
         bobsMsg.keys.publicKey,
         alicesDid
     )
+    msgThree = _msgThree
+    msgThreeAlicesKeys = keys
 
     t.equal(typeof msgThree.body.text, 'string', 'should create another message')
 })
@@ -115,8 +120,68 @@ test('Cannot decrypt a messge with the wrong keys', t => {
     t.plan(1)
 
     try {
-        decryptMsg(msgThree, bob)
+        decryptMsg(msgThree, bob)  // <-- pass in original keys, not new ones
     } catch (err) {
         t.ok(err, 'should throw given the wrong keys')
     }
+})
+
+let msgList:Message[]
+test('Alice can decrypt a series of messages', t => {
+    msgList = [msg, bobsMsg, msgThree]
+
+    const alicesDecryptionSchedule = [
+        [msgOneAlicesKeys, bob.publicKey],  // <-- A to B  or, `msg`
+        [msgOneAlicesKeys, bobsMsg.keys.publicKey],  // <-- B to A
+        [msgThreeAlicesKeys, bobsMsg.keys.publicKey]  // <-- A to B
+    ] as const
+
+    const alicesDecrypted = msgList.map((msg, i) => {
+        return decryptMsg(
+            msg,
+            alicesDecryptionSchedule[i][0],
+            alicesDecryptionSchedule[i][1]
+        )
+    })
+
+    t.equal(alicesDecrypted[0].body.text, 'hello messages',
+        'should decrypt the messages')
+    t.equal(alicesDecrypted[2].body.text, 'hello number three',
+        'should decrypt all messages')
+})
+
+test('Bob can decrypt the series of messages', t => {
+    const bobsDecryptionSchedule = [
+        [bob, msg.keys.publicKey],  // <-- A to B
+        [bobsNewKeys, msg.keys.publicKey],  // <-- B to A
+        [bobsNewKeys, msgThree.keys.publicKey]  // <-- A to B
+    ] as const
+
+    const bobsDecrypted = msgList.map((msg, i) => {
+        return decryptMsg(
+            msg,
+            bobsDecryptionSchedule[i][0],
+            bobsDecryptionSchedule[i][1]
+        )
+    })
+
+    t.ok(bobsDecrypted, 'should return something')
+    t.equal(bobsDecrypted[0].body.text, 'hello messages',
+        'should decrypt the messages')
+    t.equal(bobsDecrypted[2].body.text, 'hello number three',
+        'should decrypt all messages')
+})
+
+let newKeys:Keys
+test('Create Ed25519 keys', t => {
+    newKeys = createEd()
+    t.ok(newKeys, 'should return some keys')
+})
+
+test('Edwards keys to x25519', t => {
+    const x25519Keys = edToCurve(newKeys)
+    t.ok(x25519Keys.privateKey instanceof Uint8Array, 'should return x25519 keys')
+
+    const sharedKey = getSecret(x25519Keys, bob.publicKey)
+    t.ok(sharedKey instanceof Uint8Array, 'should return a new shared key')
 })

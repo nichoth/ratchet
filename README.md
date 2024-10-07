@@ -20,6 +20,36 @@ Key ratcheting in typescript.
 npm i -S @nichoth/ratchet
 ```
 
+## Types
+
+### Message
+
+```ts
+import type { Message } from '@bicycle-codes/ratchet'
+```
+
+An encrypted message looks like this:
+
+```ts
+{
+    keys: { publicKey: 'W+V510cXyL6LT8+MIT7KmE9+PccQtTOZwWNCYG+EVxY=' },
+    author: 'did:key:z6Mker5GURbWxk3YxW8vet9dt1Mk55D97hzLDGBtSpMBm21S',
+    body: {
+        text: 'HnlVO3QvJJQhdqmM8EGnsJgmgYpu/GOXl2OR/EFPptk8RdGvLxxmG4vQQ2pNpm2JxEvlfoZC'
+    }
+}
+```
+
+Decrypted, it looks like this:
+
+```js
+{
+    keys: { publicKey: 'W+V510cXyL6LT8+MIT7KmE9+PccQtTOZwWNCYG+EVxY=' },
+    author: 'did:key:z6Mker5GURbWxk3YxW8vet9dt1Mk55D97hzLDGBtSpMBm21S',
+    body: { text: 'hello messages' }
+}
+```
+
 ## API
 
 This exposes ESM and common JS via [package.json `exports` field](https://nodejs.org/api/packages.html#exports).
