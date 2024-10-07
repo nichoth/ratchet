@@ -182,14 +182,23 @@ export function encrypt (
 /**
  * This decrypts a message given the message + the "next" keypair.
  * (The keypair that is next in the sequence of msgs vs keys)
+ *
+ * Or pass in the current message, current keypair, and previous message
  */
 export function decryptMsg (
     msg:Message,
     keypair:Keys,
-    publicKey?:Uint8Array|string
+    publicKey?:Uint8Array|string|Message
 ):Message {
-    // should be public in prev msg + new private
-    const secret = getSecret(keypair, publicKey || msg.keys.publicKey)
+    let secret:Uint8Array|string = msg.keys.publicKey
+    if (publicKey && (publicKey as Message).body) {
+        // is message
+        const prevMsg = publicKey
+        secret = getSecret(keypair, (prevMsg as Message).keys.publicKey)
+    } else {
+        // is key
+        secret = getSecret(keypair, (publicKey as string) || msg.keys.publicKey)
+    }
     const cipherText = fromString(msg.body.text, 'base64pad')
     const nonce = cipherText.slice(0, NONCE_SIZE)
     const cipherBytes = cipherText.slice(NONCE_SIZE)  // slice 24 -> end

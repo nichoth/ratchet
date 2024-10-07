@@ -32,6 +32,8 @@
     "@noble/ciphers": "^1.0.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
+    "libsodium": "^0.7.15",
+    "libsodium-wrappers": "^0.7.15",
     "uint8arrays": "^5.1.0"
   },
   "devDependencies": {

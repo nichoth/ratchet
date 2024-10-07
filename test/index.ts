@@ -152,9 +152,9 @@ test('Alice can decrypt a series of messages', t => {
 
 test('Bob can decrypt the series of messages', t => {
     const bobsDecryptionSchedule = [
-        [bob, msg.keys.publicKey],  // <-- A to B
-        [bobsNewKeys, msg.keys.publicKey],  // <-- B to A
-        [bobsNewKeys, msgThree.keys.publicKey]  // <-- A to B
+        [bob, msg.keys.publicKey],  // <-- A to B -- msg
+        [bobsNewKeys, msg.keys.publicKey],  // <-- B to A -- bobsMsg
+        [bobsNewKeys, msgThree.keys.publicKey]  // <-- A to B -- msgThree
     ] as const
 
     const bobsDecrypted = msgList.map((msg, i) => {
@@ -184,4 +184,9 @@ test('Edwards keys to x25519', t => {
 
     const sharedKey = getSecret(x25519Keys, bob.publicKey)
     t.ok(sharedKey instanceof Uint8Array, 'should return a new shared key')
+})
+
+test('Can decrypt given current message, prev message, and keys', t => {
+    const decrypted = decryptMsg(bobsMsg, bobsNewKeys, msg)
+    t.equal(decrypted.body.text, 'hello from Bob', 'should decrypt the message')
 })
