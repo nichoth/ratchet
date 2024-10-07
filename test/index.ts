@@ -131,7 +131,7 @@ test('Alice can decrypt a series of messages', t => {
     msgList = [msg, bobsMsg, msgThree]
 
     const alicesDecryptionSchedule = [
-        [msgOneAlicesKeys, bob.publicKey],  // <-- A to B  or, `msg`
+        [msgOneAlicesKeys, bob.publicKey],  // <-- A to B
         [msgOneAlicesKeys, bobsMsg.keys.publicKey],  // <-- B to A
         [msgThreeAlicesKeys, bobsMsg.keys.publicKey]  // <-- A to B
     ] as const
