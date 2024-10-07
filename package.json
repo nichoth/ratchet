@@ -27,6 +27,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@bicycle-codes/crypto-util": "^0.2.3",
     "@bicycle-codes/one-webcrypto": "^1.1.2",
     "@noble/ciphers": "^1.0.0",
     "@noble/curves": "^1.6.0",
