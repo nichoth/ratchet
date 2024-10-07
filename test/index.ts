@@ -5,15 +5,17 @@ import { publicKeyToDid } from '@bicycle-codes/crypto-util/util'
 import {
     type Keys,
     type DID,
+    type Message,
+    type Ed25519Keys,
+    type X25519Keys,
     create,
     getSecret,
     encrypt,
     decrypt,
     message,
     decryptMsg,
-    type Message,
     edToCurve,
-    createEd
+    createEd,
 } from '../src/index.js'
 
 let alice:Keys
@@ -50,7 +52,7 @@ test('decrypt the string', t => {
 })
 
 let msg:Message  // a message from Alice to Bob
-let msgOneAlicesKeys:Keys
+let msgOneAlicesKeys:X25519Keys
 let alicesDid:DID
 test('encrypt a message', t => {
     alicesDid = publicKeyToDid.ecc(alice.publicKey)
@@ -79,7 +81,7 @@ test('Bob can decrypt the message that Alice created', t => {
 })
 
 let bobsMsg:Message
-let bobsNewKeys:Keys
+let bobsNewKeys:X25519Keys
 test('Bob can create a message, using the last message as key material', t => {
     [bobsMsg, { keys: bobsNewKeys }] = message(
         'hello from Bob',
@@ -97,7 +99,7 @@ test("Alice can decrypt Bob's new message", t => {
 })
 
 let msgThree:Message
-let msgThreeAlicesKeys:Keys
+let msgThreeAlicesKeys:X25519Keys
 test('Alice ratchets the messages', t => {
     const [_msgThree, { keys }] = message(
         'hello number three',
@@ -172,7 +174,7 @@ test('Bob can decrypt the series of messages', t => {
         'should decrypt all messages')
 })
 
-let newKeys:Keys
+let newKeys:Ed25519Keys
 test('Create Ed25519 keys', t => {
     newKeys = createEd()
     t.ok(newKeys, 'should return some keys')

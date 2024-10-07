@@ -13,14 +13,22 @@ import type { DID } from '@bicycle-codes/crypto-util/types'
 // import { createDebug } from '@bicycle-codes/debug'
 // const debug = createDebug()
 const NONCE_SIZE = 24
-const KEY_SIZE = 32
 
 export type { DID }
 
 export interface Keys {
     privateKey:Uint8Array;
     publicKey:Uint8Array;
+    encPK:Uint8Array;
+    encSK:Uint8Array;
 }
+
+export interface Ed25519Keys {
+    privateKey:Uint8Array;
+    publicKey:Uint8Array;
+}
+
+export type X25519Keys = Ed25519Keys
 
 /**
  * encoded as `base64pad`
@@ -35,11 +43,14 @@ export interface SerializedKeys {
  *
  * @returns {{ privateKey:Uint8Array, publicKey:Uint8Array }}
  */
-export function createEd ():Keys {
+export function createEd ():{ privateKey:Uint8Array; publicKey:Uint8Array; } {
     const priv = ed25519.utils.randomPrivateKey()
     const pub = ed25519.getPublicKey(priv)
 
-    return { privateKey: priv, publicKey: pub }
+    return {
+        privateKey: priv,
+        publicKey: pub
+    }
 }
 
 /**
@@ -50,7 +61,10 @@ export function createEd ():Keys {
  * @param edKeys The Edwards keypair
  * @returns {Keys} The x25519 keypair
  */
-export function edToCurve (edKeys:Keys):Keys {
+export function edToCurve (edKeys:{ publicKey:Uint8Array; privateKey:Uint8Array }):{
+    publicKey:Uint8Array,
+    privateKey:Uint8Array
+} {
     return {
         publicKey: edwardsToMontgomeryPub(edKeys.publicKey),
         privateKey: edwardsToMontgomeryPriv(edKeys.privateKey)
@@ -67,16 +81,21 @@ function createRandom (length?:number) {
 }
 
 /**
- * Create a new 25519 keypair.
+ * Create a new ed25519 keypair and x25519 keypair.
  *
  * @param seed Private key material
- * @returns {keys} A new keypair
+ * @returns {keys} New keypairs
  */
-export function create (seed:Uint8Array = createRandom(KEY_SIZE)):Keys {
-    const sk = sha256(seed)
-    const pk = x25519.scalarMultBase(sk)
+export function create ():Keys {
+    const edKeys = createEd()
+    const xKeys = edToCurve(edKeys)
 
-    return { privateKey: sk, publicKey: pk }
+    return {
+        privateKey: edKeys.privateKey,
+        publicKey: edKeys.publicKey,
+        encSK: xKeys.privateKey,
+        encPK: xKeys.publicKey
+    }
 }
 
 export interface Message {
@@ -110,7 +129,7 @@ export function message (
     author:DID,
     newKeypair?:{ privateKey:string|Uint8Array, publicKey: string|Uint8Array },
     info?:string
-):[Message, { keys:Keys }] {
+):[Message, { keys:X25519Keys }] {
     const keypair = newKeypair || create()
     const newSecret = getSecret(keypair, theirPublicKey, info)
     const nonce = createRandom(NONCE_SIZE)
@@ -187,7 +206,7 @@ export function encrypt (
  */
 export function decryptMsg (
     msg:Message,
-    keypair:Keys,
+    keypair:X25519Keys,
     publicKey?:Uint8Array|string|Message
 ):Message {
     let secret:Uint8Array|string = msg.keys.publicKey
