@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { equals } from 'uint8arrays'
 import { test } from '@bicycle-codes/tapzero'
 import { publicKeyToDid } from '@bicycle-codes/crypto-util/util'

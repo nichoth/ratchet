@@ -10,8 +10,6 @@ import { hkdf } from '@noble/hashes/hkdf'
 import { fromString, toString } from 'uint8arrays'
 import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import type { DID } from '@bicycle-codes/crypto-util/types'
-// import { createDebug } from '@bicycle-codes/debug'
-// const debug = createDebug()
 const NONCE_SIZE = 24
 const KEY_SIZE = 32
 
