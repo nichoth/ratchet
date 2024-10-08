@@ -213,7 +213,7 @@ Decrypted, it looks like this:
 }
 ```
 
-## API
+## Exports
 
 This exposes ESM and common JS via [package.json `exports` field](https://nodejs.org/api/packages.html#exports).
 
