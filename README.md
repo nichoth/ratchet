@@ -58,7 +58,7 @@ const [msg, { keys }] = message(
 ```ts
 import { decryptMsg } from '@nichoth/ratchet'
 
-// pass in the message and the keypair containing the secret key
+// pass in the message and the keypair containing the relevant secret key
 const decrypted =  decryptMsg(msg, bob.x25519)
 ```
 

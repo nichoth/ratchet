@@ -226,16 +226,19 @@ export function encrypt (
 export function decryptMsg (
     msg:Message,
     keypair:X25519Keys,
-    publicKey?:Uint8Array|string|Message
+    publicKeyOrPrevMsg?:Uint8Array|string|Message
 ):Message {
     let secret:Uint8Array|string = msg.keys.publicKey
-    if (publicKey && (publicKey as Message).body) {
+    if (publicKeyOrPrevMsg && (publicKeyOrPrevMsg as Message).body) {
         // is message
-        const prevMsg = publicKey
+        const prevMsg = publicKeyOrPrevMsg
         secret = getSecret(keypair.privateKey, (prevMsg as Message).keys.publicKey)
     } else {
         // is key
-        secret = getSecret(keypair.privateKey, (publicKey as string) || msg.keys.publicKey)
+        secret = getSecret(
+            keypair.privateKey,
+            (publicKeyOrPrevMsg as string) || msg.keys.publicKey
+        )
     }
     const cipherText = fromString(msg.body.text, 'base64pad')
     const nonce = cipherText.slice(0, NONCE_SIZE)
