@@ -1,17 +1,13 @@
 {
   "name": "@nichoth/ratchet",
+  "version": "0.0.0",
   "description": "Key ratcheting",
   "directories": {
     "doc": "docs",
     "example": "example",
     "test": "test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nichoth/ratchet.git"
-  },
   "type": "module",
-  "version": "0.0.0",
   "main": "dist/index.js",
   "files": [
     "./dist/*"
@@ -79,6 +75,10 @@
     "typedoc": "^0.26.4",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nichoth/ratchet.git"
   },
   "types": "./dist/index.d.ts",
   "bugs": {
