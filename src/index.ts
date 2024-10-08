@@ -59,6 +59,9 @@ export function createEd ():{ privateKey:Uint8Array; publicKey:Uint8Array; } {
     }
 }
 
+/**
+ * Create a new x25519 keypair, mostly used internally by the message function.
+ */
 export function createX25519 (seed:Uint8Array = createRandom(KEY_SIZE)):X25519Keys {
     const sk = sha256(seed)
     const pk = x25519.scalarMultBase(sk)
@@ -71,7 +74,7 @@ export function createX25519 (seed:Uint8Array = createRandom(KEY_SIZE)):X25519Ke
  *
  * Use Edwards keys for signatures, x25519 for Diffie-Hellman/encryption
  * @param edKeys The Edwards keypair
- * @returns {Keys} The x25519 keypair
+ * @returns {Keys['x25519']} The x25519 keypair
  */
 export function edToCurve (edKeys:{ publicKey:Uint8Array; privateKey:Uint8Array }):{
     publicKey:Uint8Array,
@@ -95,8 +98,7 @@ function createRandom (length?:number) {
 /**
  * Create a new ed25519 keypair and x25519 keypair.
  *
- * @param seed Private key material
- * @returns {keys} New keypairs
+ * @returns {Keys} New keypairs
  */
 export function create ():Keys {
     const edKeys = createEd()
@@ -133,8 +135,9 @@ export interface Message {
  * the message.
  *
  * @param text The text to encrypt
- * @param keypair Your ed25519 keypair
- * @param pub Their ed25519 public key
+ * @param theirPublicKey Recipient's public key
+ * @param author Your Ed25519 key as a DID format string
+ * @param {Keys['x25519']} [newKeypair] Optional new keypair to use
  * @param info Info param
  * @returns {[Message, { keys:Keys }]} The encrypted message and the new keypair
  *      used to encrypt it.
@@ -277,9 +280,9 @@ export function decrypt (cipherText:string, key:Uint8Array):string {
 /**
  * Use ECDH to derive a new secret key.
  *
- * @param keypair Your keypair
- * @param pub Their public key
- * @param info Info param
+ * @param privateKey Your private key
+ * @param publicKey Their public key
+ * @param {string} [info] Info param
  * @returns {Uint8Array} The new secret key
  */
 export function getSecret (
