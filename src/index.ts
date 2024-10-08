@@ -11,6 +11,7 @@ import { fromString, toString } from 'uint8arrays'
 import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import type { DID } from '@bicycle-codes/crypto-util/types'
 const NONCE_SIZE = 24
+const KEY_SIZE = 32
 
 export type { DID }
 
@@ -19,14 +20,21 @@ export interface Ed25519Keys {
     publicKey:Uint8Array;
 }
 
-export interface Keys {
-    privateKey:Ed25519Keys['privateKey'];
-    publicKey:Ed25519Keys['publicKey'];
-    encPK:Uint8Array;
-    encSK:Uint8Array;
+export interface X25519Keys {
+    privateKey:Uint8Array;
+    publicKey:Uint8Array;
 }
 
-export type X25519Keys = Ed25519Keys
+export interface Keys {
+    ed25519: {
+        privateKey:Ed25519Keys['privateKey'];
+        publicKey:Ed25519Keys['publicKey'];
+    };
+    x25519: {
+        privateKey:X25519Keys['privateKey'];
+        publicKey:X25519Keys['publicKey'];
+    }
+}
 
 /**
  * encoded as `base64pad`
@@ -49,6 +57,12 @@ export function createEd ():{ privateKey:Uint8Array; publicKey:Uint8Array; } {
         privateKey: priv,
         publicKey: pub
     }
+}
+
+export function createX25519 (seed:Uint8Array = createRandom(KEY_SIZE)):X25519Keys {
+    const sk = sha256(seed)
+    const pk = x25519.scalarMultBase(sk)
+    return { privateKey: sk, publicKey: pk }
 }
 
 /**
@@ -89,10 +103,14 @@ export function create ():Keys {
     const xKeys = edToCurve(edKeys)
 
     return {
-        privateKey: edKeys.privateKey,
-        publicKey: edKeys.publicKey,
-        encSK: xKeys.privateKey,
-        encPK: xKeys.publicKey
+        ed25519: {
+            privateKey: edKeys.privateKey,
+            publicKey: edKeys.publicKey,
+        },
+        x25519: {
+            privateKey: xKeys.privateKey,
+            publicKey: xKeys.publicKey
+        }
     }
 }
 
@@ -123,7 +141,7 @@ export interface Message {
  */
 export function message (
     text:string|Uint8Array,
-    theirPublicKey:string|Uint8Array,
+    theirPublicKey:string|X25519Keys['publicKey'],
     author:DID,
     newKeypair?:{
         privateKey:string|X25519Keys['publicKey'],
@@ -131,7 +149,7 @@ export function message (
     },
     info?:string
 ):[Message, { keys:X25519Keys }] {
-    const keypair = newKeypair || create()
+    const keypair = newKeypair || createX25519()
     const newSecret = getSecret(keypair.privateKey, theirPublicKey, info)
     const nonce = createRandom(NONCE_SIZE)
     const cipher = xchacha20poly1305(newSecret, nonce)
