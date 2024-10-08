@@ -13,6 +13,23 @@ Key ratcheting in typescript, implemented with [noble crypto](https://paulmillr.
 
 <!-- toc -->
 
+- [install](#install)
+- [Example](#example)
+  * [Create a new keypair](#create-a-new-keypair)
+  * [Encrypt a new message](#encrypt-a-new-message)
+  * [Decrypt a message](#decrypt-a-message)
+- [Types](#types)
+  * [Ed25519Keys](#ed25519keys)
+  * [X25519Keys](#x25519keys)
+  * [DID](#did)
+  * [Keys](#keys)
+  * [Message](#message)
+- [API](#api)
+  * [ESM](#esm)
+  * [Common JS](#common-js)
+
+<!-- tocstop -->
+
 ## install
 
 ```sh
