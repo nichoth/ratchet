@@ -38,6 +38,8 @@ npm i -S @nichoth/ratchet
 
 ## Example
 
+See [the tests](./test/index.ts) for more examples.
+
 ### Create a new keypair
 
 ```ts
@@ -60,6 +62,19 @@ const alice = create()
 This returns a tuple of `[Message, { keys }]`, where `keys` is the new keypair that was created for this message. A string version of the public key is embedded in the message.
 
 ```ts
+function message (
+    text:string|Uint8Array,
+    theirPublicKey:string|X25519Keys['publicKey'],
+    author:DID,
+    newKeypair?:{
+        privateKey:string|X25519Keys['publicKey'],
+        publicKey: string|X25519Keys['privateKey']
+    },
+    info?:string
+):[Message, { keys:X25519Keys }]
+```
+
+```ts
 import { message } from '@nichoth/ratchet'
 
 // a message from Alice to Bob
@@ -70,7 +85,18 @@ const [msg, { keys }] = message(
 )
 ```
 
+Pass in the public key from the previous message to ratchet the keys.
+
+```ts
+const [newMsg, { keys }] = message(
+    'hello again',
+    prevMsg.keys.publicKey,
+    alicesDid
+)
+```
+
 ### Decrypt a message
+Decrypt the given message with the matching private key.
 
 ```ts
 import { decryptMsg } from '@nichoth/ratchet'
