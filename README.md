@@ -9,6 +9,14 @@
 
 Key ratcheting in typescript, implemented with [noble crypto](https://paulmillr.com/noble/).
 
+__The way this works__
+
+When you create a message, we create a new keypair, and embed the public side in the message. Each message is encrypted with the new private key, + the public key embedded in the previous message.
+
+It can be decrypted by the recipient because the recipient knows the previous secret key, and can combine this with the public key embedded in the message.
+
+The recipient is able to decrypt a new message because they can use the public key in the message with their last secret key.
+
 [Read some API docs](https://nichoth.github.io/ratchet/)
 
 <!-- toc -->
@@ -42,7 +50,7 @@ See [the tests](./test/index.ts) for more examples.
 
 ### Create a new keypair
 
-Create two kehypairs -- `ed25519`, for signing, and `x25519`, for encryption.
+Create two keypairs -- `ed25519`, for signing, and `x25519`, for encryption.
 
 ```ts
 import { create } from '@nichoth/ratchet'
@@ -61,7 +69,9 @@ const alice = create()
 ```
 
 ### Encrypt a new message
-This returns a tuple of `[Message, { keys }]`, where `keys` is the new keypair that was created for this message. A string version of the public key is embedded in the message.
+This returns an array of `[Message, { keys }]`, where `keys` is the new keypair that was created for this message. A string version of the public key is embedded in the message.
+
+You must pass in a DID string that is used as `author` field. This is passed in separately because we might want to use a different keypair for identity vs the keypair passed in, which is used for encryption.
 
 ```ts
 function message (
@@ -87,7 +97,7 @@ const [msg, { keys }] = message(
 )
 ```
 
-Pass in the public key from the previous message to ratchet the keys.
+### Pass in the public key from the previous message to ratchet the keys
 
 ```ts
 const [newMsg, { keys }] = message(
@@ -105,6 +115,16 @@ import { decryptMsg } from '@nichoth/ratchet'
 
 // pass in the message and the keypair containing the relevant secret key
 const decrypted =  decryptMsg(msg, bob.x25519)
+```
+
+### Decrypt a message with keys and the previous message
+
+You can pass in the previous message and keys to decrypt.
+
+```ts
+import { decryptMsg } from '@nichoth/ratchet'
+
+const decrypted = decryptMsg(newMessage, keys, previousMessage)
 ```
 
 -------------------------------------------------------------------

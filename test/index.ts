@@ -121,7 +121,7 @@ test('Cannot decrypt a messge with the wrong keys', t => {
     t.plan(1)
 
     try {
-        decryptMsg(msgThree, bob.x25519)  // <-- pass in original keys, not new ones
+        decryptMsg(msgThree, bob.x25519)  // <-- pass in original keys, not current ones
     } catch (err) {
         t.ok(err, 'should throw given the wrong keys')
     }
@@ -187,7 +187,7 @@ test('Edwards keys to x25519', t => {
     t.ok(sharedKey instanceof Uint8Array, 'should return a new shared key')
 })
 
-test('Can decrypt given current message, prev message, and keys', t => {
+test('Can decrypt given the current message, prev message, and keys', t => {
     const decrypted = decryptMsg(bobsMsg, bobsNewKeys, msg)
     t.equal(decrypted.body.text, 'hello from Bob', 'should decrypt the message')
 })

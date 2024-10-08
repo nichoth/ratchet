@@ -10,10 +10,11 @@ import { hkdf } from '@noble/hashes/hkdf'
 import { fromString, toString } from 'uint8arrays'
 import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import type { DID } from '@bicycle-codes/crypto-util/types'
+import type { Message } from './types.js'
 const NONCE_SIZE = 24
 const KEY_SIZE = 32
 
-export type { DID }
+export type { DID, Message }
 
 export interface Ed25519Keys {
     privateKey:Uint8Array;
@@ -116,16 +117,6 @@ export function create ():Keys {
     }
 }
 
-export interface Message {
-    keys:{  // <-- base64pad encoded keys
-        publicKey:string;
-    };
-    author:DID;
-    body:{
-        text:string;
-    };
-}
-
 /**
  * Create a new encrypted message using a new keypair + the other party's most
  * recent public key.
@@ -221,8 +212,7 @@ export function encrypt (
 }
 
 /**
- * This decrypts a message given the message + the "next" keypair.
- * (The keypair that is next in the sequence of msgs vs keys)
+ * This decrypts a message given the message + the relevant keypair.
  *
  * Or pass in the current message, current keypair, and previous message
  */
