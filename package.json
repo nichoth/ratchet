@@ -1,11 +1,37 @@
 {
-  "private": true,
+  "name": "@nichoth/ratchet",
+  "description": "Key ratcheting",
+  "directories": {
+    "doc": "docs",
+    "example": "example",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nichoth/ratchet.git"
+  },
   "type": "module",
   "version": "0.0.0",
   "main": "dist/index.js",
   "files": [
     "./dist/*"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./*": {
+      "import": [
+        "./dist/*.js",
+        "./dist/*"
+      ],
+      "require": [
+        "./dist/*.cjs",
+        "./dist/*"
+      ]
+    }
+  },
   "scripts": {
     "lint": "eslint \"./**/*.{ts,js}\"",
     "test": "esbuild ./src/index.ts --format=esm --platform=node --bundle > src/index.js && bash -c 'cd ./test && npx esbuild index.ts --platform=node --format=esm | node --input-type=module' | tap-spec",
@@ -26,41 +52,21 @@
     "postversion": "git push --follow-tags && npm publish",
     "prepublishOnly": "npm run build"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./*": {
-      "import": [
-        "./dist/*.js",
-        "./dist/*"
-      ],
-      "require": [
-        "./dist/*.cjs",
-        "./dist/*"
-      ]
-    }
-  },
   "dependencies": {
     "@bicycle-codes/crypto-util": "^0.2.4",
     "@bicycle-codes/one-webcrypto": "^1.1.2",
     "@noble/ciphers": "^1.0.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
-    "libsodium": "^0.7.15",
-    "libsodium-wrappers": "^0.7.15",
     "uint8arrays": "^5.1.0"
   },
   "devDependencies": {
     "@bicycle-codes/debug": "^0.6.13",
     "@bicycle-codes/tapzero": "^0.10.3",
     "@preact/preset-vite": "^2.9.0",
-    "@types/libsodium-wrappers": "^0.7.14",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "auto-changelog": "^2.4.0",
-    "dotenv": "^16.4.5",
     "esbuild": "^0.24.0",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
@@ -71,9 +77,18 @@
     "tap-spec": "^5.0.0",
     "tape-run": "^11.0.0",
     "typedoc": "^0.26.4",
-    "typescript": "^5.4.5",
-    "vite": "^5.3.3"
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
   },
+  "types": "./dist/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/nichoth/ratchet/issues"
+  },
+  "keywords": [
+    "ratchet",
+    "crypto"
+  ],
+  "homepage": "https://github.com/nichoth/ratchet",
   "author": "nichoth <nichoth@nichoth.com> (https://nichoth.com)",
   "license": "MIT"
 }
