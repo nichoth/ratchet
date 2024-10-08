@@ -15,8 +15,6 @@ When you create a message, we create a new keypair, and embed the public side in
 
 It can be decrypted by the recipient because the recipient knows the previous secret key, and can combine this with the public key embedded in the message.
 
-The recipient is able to decrypt a new message because they can use the public key in the message with their last secret key.
-
 [Read some API docs](https://nichoth.github.io/ratchet/)
 
 <!-- toc -->
