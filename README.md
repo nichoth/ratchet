@@ -34,7 +34,7 @@ The recipient is able to decrypt a new message because they can use the public k
   * [DID](#did)
   * [Keys](#keys)
   * [Message](#message)
-- [API](#api)
+- [Exports](#exports)
   * [ESM](#esm)
   * [Common JS](#common-js)
 
