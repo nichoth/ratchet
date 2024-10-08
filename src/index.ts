@@ -16,16 +16,16 @@ const NONCE_SIZE = 24
 
 export type { DID }
 
-export interface Keys {
-    privateKey:Uint8Array;
-    publicKey:Uint8Array;
-    encPK:Uint8Array;
-    encSK:Uint8Array;
-}
-
 export interface Ed25519Keys {
     privateKey:Uint8Array;
     publicKey:Uint8Array;
+}
+
+export interface Keys {
+    privateKey:Ed25519Keys['privateKey'];
+    publicKey:Ed25519Keys['publicKey'];
+    encPK:Uint8Array;
+    encSK:Uint8Array;
 }
 
 export type X25519Keys = Ed25519Keys
