@@ -125,11 +125,14 @@ export function message (
     text:string|Uint8Array,
     theirPublicKey:string|Uint8Array,
     author:DID,
-    newKeypair?:{ privateKey:string|Uint8Array, publicKey: string|Uint8Array },
+    newKeypair?:{
+        privateKey:string|X25519Keys['publicKey'],
+        publicKey: string|X25519Keys['privateKey']
+    },
     info?:string
 ):[Message, { keys:X25519Keys }] {
     const keypair = newKeypair || create()
-    const newSecret = getSecret(keypair, theirPublicKey, info)
+    const newSecret = getSecret(keypair.privateKey, theirPublicKey, info)
     const nonce = createRandom(NONCE_SIZE)
     const cipher = xchacha20poly1305(newSecret, nonce)
     const cipherText = cipher.encrypt(typeof text === 'string' ?
@@ -211,10 +214,10 @@ export function decryptMsg (
     if (publicKey && (publicKey as Message).body) {
         // is message
         const prevMsg = publicKey
-        secret = getSecret(keypair, (prevMsg as Message).keys.publicKey)
+        secret = getSecret(keypair.privateKey, (prevMsg as Message).keys.publicKey)
     } else {
         // is key
-        secret = getSecret(keypair, (publicKey as string) || msg.keys.publicKey)
+        secret = getSecret(keypair.privateKey, (publicKey as string) || msg.keys.publicKey)
     }
     const cipherText = fromString(msg.body.text, 'base64pad')
     const nonce = cipherText.slice(0, NONCE_SIZE)
@@ -259,16 +262,17 @@ export function decrypt (cipherText:string, key:Uint8Array):string {
  * @returns {Uint8Array} The new secret key
  */
 export function getSecret (
-    keypair:{ privateKey:string|Uint8Array, publicKey:string|Uint8Array },
-    _pub:string|Uint8Array,
+    privateKey:string|Uint8Array,
+    publicKey:string|Uint8Array,
     info?:string
 ):Uint8Array {
-    const { privateKey } = keypair
     const privKey = typeof privateKey === 'string' ?
         fromString(privateKey, 'base64pad') :
         privateKey
 
-    const pub = typeof _pub === 'string' ? fromString(_pub, 'base64pad') : _pub
+    const pub = typeof publicKey === 'string' ?
+        fromString(publicKey, 'base64pad') :
+        publicKey
 
     const newSecret = hkdf(
         sha256,

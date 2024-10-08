@@ -28,12 +28,12 @@ test('setup', async t => {
 
 let key:Uint8Array
 test('create a new secret key via ECDH', t => {
-    key = getSecret(alice, bob.publicKey)
+    key = getSecret(alice.encSK, bob.encPK)
     t.ok(key instanceof Uint8Array, 'should return new bytes')
 })
 
 test('bob derives a key', t => {
-    const bobsKey = getSecret(bob, alice.publicKey)
+    const bobsKey = getSecret(bob.encSK, alice.encPK)
     t.ok(bobsKey instanceof Uint8Array, 'should return bytes')
     t.ok(equals(key, bobsKey), 'should return the same key')
 })
@@ -57,11 +57,11 @@ test('encrypt a message', t => {
     alicesDid = publicKeyToDid.ecc(alice.publicKey)
     const [_msg, { keys }] = message(
         'hello messages',
-        bob.publicKey,
+        bob.encPK,
         alicesDid
     )
-    msg = _msg
     msgOneAlicesKeys = keys
+    msg = _msg
 
     console.log('the message...', msg)
     t.ok(msg, 'returns a message')
@@ -74,7 +74,10 @@ test('encrypt a message', t => {
 
 let decryptedMsg:Message
 test('Bob can decrypt the message that Alice created', t => {
-    const decrypted = decryptedMsg = decryptMsg(msg, bob)
+    const decrypted = decryptedMsg = decryptMsg(msg, {
+        privateKey: bob.encSK,
+        publicKey: bob.encPK
+    })
     t.ok(decrypted, 'should return something')
     t.equal(decrypted.body.text, 'hello messages', 'should decrypt the message')
 })
@@ -183,7 +186,7 @@ test('Edwards keys to x25519', t => {
     const x25519Keys = edToCurve(newKeys)
     t.ok(x25519Keys.privateKey instanceof Uint8Array, 'should return x25519 keys')
 
-    const sharedKey = getSecret(x25519Keys, bob.publicKey)
+    const sharedKey = getSecret(x25519Keys.privateKey, bob.encPK)
     t.ok(sharedKey instanceof Uint8Array, 'should return a new shared key')
 })
 
