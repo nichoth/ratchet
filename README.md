@@ -42,6 +42,8 @@ See [the tests](./test/index.ts) for more examples.
 
 ### Create a new keypair
 
+Create two kehypairs -- `ed25519`, for signing, and `x25519`, for encryption.
+
 ```ts
 import { create } from '@nichoth/ratchet'
 const alice = create()
