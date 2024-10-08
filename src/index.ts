@@ -116,16 +116,16 @@ export function create ():Keys {
 
 export interface Message {
     keys:{  // <-- base64pad encoded keys
-        publicKey:string,
+        publicKey:string;
     };
-    author:DID,
-    body: {
+    author:DID;
+    body:{
         text:string;
-    }
+    };
 }
 
 /**
- * Create an encrypted message using a new keypair + the other party's most
+ * Create a new encrypted message using a new keypair + the other party's most
  * recent public key.
  *
  * Put the public half of the new keypair in the message, so it can
