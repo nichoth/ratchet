@@ -7,36 +7,7 @@
 [![install size](https://flat.badgen.net/packagephobia/install/@nichoth/ratchet)](https://packagephobia.com/result?p=@nichoth/ratchet)
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
-Key ratcheting in typescript, implemented with [noble crypto](https://paulmillr.com/noble/).
-
-__The way this works__
-
-When you create a message, we create a new keypair, and embed the public side in the message. Each message is encrypted with the new private key, + the public key embedded in the previous message.
-
-It can be decrypted by the recipient because the recipient knows the previous secret key, and can combine this with the public key embedded in the message.
-
-[Read some API docs](https://nichoth.github.io/ratchet/)
-
 <!-- toc -->
-
-- [install](#install)
-- [Example](#example)
-  * [Create a new keypair](#create-a-new-keypair)
-  * [Encrypt a new message](#encrypt-a-new-message)
-  * [Pass in the public key from the previous message to ratchet the keys](#pass-in-the-public-key-from-the-previous-message-to-ratchet-the-keys)
-  * [Decrypt a message](#decrypt-a-message)
-  * [Decrypt a message with keys and the previous message](#decrypt-a-message-with-keys-and-the-previous-message)
-- [Types](#types)
-  * [Ed25519Keys](#ed25519keys)
-  * [X25519Keys](#x25519keys)
-  * [DID](#did)
-  * [Keys](#keys)
-  * [Message](#message)
-- [Exports](#exports)
-  * [ESM](#esm)
-  * [Common JS](#common-js)
-
-<!-- tocstop -->
 
 ## install
 
@@ -44,183 +15,28 @@ It can be decrypted by the recipient because the recipient knows the previous se
 npm i -S @nichoth/ratchet
 ```
 
-## Example
+## notes
 
-See [the tests](./test/index.ts) for more examples.
+* [Why Are You Using Ed25519 Keys for X3DH?](https://soatok.blog/2020/11/14/going-bark-a-furrys-guide-to-end-to-end-encryption/#why-ed25519-keys-x3dh)
 
-### Create a new keypair
+> piggybacking on another protocol called Gossamer to handle the distribution of Ed25519 public keys.
 
-Create two keypairs -- `ed25519`, for signing, and `x25519`, for encryption.
+> we’re actually using birationally equivalent X25519 keys derived from the Ed25519 keypair for the X3DH step.
 
-```ts
-import { create } from '@nichoth/ratchet'
-const alice = create()
+This is like what we do in [webauthn-keys](https://github.com/bicycle-codes/webauthn-keys/blob/955581371202418a61081321cb78dadc9fd5ed1c/src/index.ts#L163). We use the sodium function `ed25519_to_curve25519`:
 
-// => {
-//    ed25519: {
-//        privateKey:Uint8Array
-//        publicKey:Uint8Array
-//    };
-//    x25519: {
-//        privateKey:Uint8Array
-//        publicKey:Uint8Array
-//     }
-//  }
-```
-
-### Encrypt a new message
-This returns an array of `[Message, { keys }]`, where `keys` is the new keypair that was created for this message. A string version of the public key is embedded in the message.
-
-You must pass in a DID string that is used as `author` field. This is passed in separately because we might want to use a different keypair for identity vs the keypair passed in, which is used for encryption.
-
-```ts
-function message (
-    text:string|Uint8Array,
-    theirPublicKey:string|X25519Keys['publicKey'],
-    author:DID,
-    newKeypair?:{
-        privateKey:string|X25519Keys['publicKey'],
-        publicKey: string|X25519Keys['privateKey']
-    },
-    info?:string
-):[Message, { keys:X25519Keys }]
-```
-
-```ts
-import { message } from '@nichoth/ratchet'
-
-// a message from Alice to Bob
-const [msg, { keys }] = message(
-    'hello world',
-    bob.x25519.publicKey,
-    alicesDid
+```js
+sodium.crypto_sign_ed25519_pk_to_curve25519(
+    ed25519KeyPair.publicKey,
 )
 ```
 
-### Pass in the public key from the previous message to ratchet the keys
+See [this sodium document](https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519)
 
-```ts
-const [newMsg, { keys }] = message(
-    'hello again',
-    prevMsg.keys.publicKey,
-    alicesDid
-)
-```
 
-### Decrypt a message
-Decrypt the given message with the matching private key.
+## See also
 
-```ts
-import { decryptMsg } from '@nichoth/ratchet'
+https://soatok.blog/2020/07/12/comparison-of-symmetric-encryption-methods/#chacha-vs-salsa20
 
-// pass in the message and the keypair containing the relevant secret key
-const decrypted =  decryptMsg(msg, bob.x25519)
-```
-
-### Decrypt a message with keys and the previous message
-
-You can pass in the previous message and keys to decrypt.
-
-```ts
-import { decryptMsg } from '@nichoth/ratchet'
-
-const decrypted = decryptMsg(newMessage, keys, previousMessage)
-```
-
--------------------------------------------------------------------
-
-## Types
-
-All the key types are just aliases to `Uint8Array`.
-
-* [Ed25519Keys](#ed25519keys)
-* [X25519Keys](#x25519keys)
-* [DID](#did)
-* [Keys](#keys)
-* [Message](#message)
-
-### Ed25519Keys
-
-```ts
-interface Ed25519Keys {
-    privateKey:Uint8Array;
-    publicKey:Uint8Array;
-}
-```
-
-### X25519Keys
-
-```ts
-type X25519Keys = Ed25519Keys;
-```
-
-### DID
-```ts
-type DID = `did:key:z${string}`;
-```
-
-### Keys
-These are aliases to `Uint8Array`.
-
-```ts
-interface Keys {
-    ed25519: {
-        privateKey:Ed25519Keys['privateKey'];
-        publicKey:Ed25519Keys['publicKey'];
-    };
-    x25519: {
-        privateKey:X25519Keys['privateKey'];
-        publicKey:X25519Keys['publicKey'];
-    }
-}
-```
-
-### Message
-
-```ts
-interface Message {
-    keys:{  // <-- base64pad encoded
-        publicKey:string;
-    };
-    author:DID;
-    body:{
-        text:string;
-    };
-}
-```
-
-An encrypted message looks like this:
-
-```ts
-{
-    keys: { publicKey: 'W+V510cXyL6LT8+MIT7KmE9+PccQtTOZwWNCYG+EVxY=' },
-    author: 'did:key:z6Mker5GURbWxk3YxW8vet9dt1Mk55D97hzLDGBtSpMBm21S',
-    body: {
-        text: 'HnlVO3QvJJQhdqmM8EGnsJgmgYpu/GOXl2OR/EFPptk8RdGvLxxmG4vQQ2pNpm2JxEvlfoZC'
-    }
-}
-```
-
-Decrypted, it looks like this:
-
-```js
-{
-    keys: { publicKey: 'W+V510cXyL6LT8+MIT7KmE9+PccQtTOZwWNCYG+EVxY=' },
-    author: 'did:key:z6Mker5GURbWxk3YxW8vet9dt1Mk55D97hzLDGBtSpMBm21S',
-    body: { text: 'hello messages' }
-}
-```
-
-## Exports
-
-This exposes ESM and common JS via [package.json `exports` field](https://nodejs.org/api/packages.html#exports).
-
-### ESM
-```js
-import { create, encrypt } from '@nichoth/ratchet'
-```
-
-### Common JS
-```js
-const { create, encrypt } = require('@nichoth/ratchet')
-```
+* [Implementing Signal’s Double Ratchet algorithm](https://nfil.dev/coding/encryption/python/double-ratchet-example/)
+* [soatok -- ChaCha vs. Salsa20](https://soatok.blog/2020/07/12/comparison-of-symmetric-encryption-methods/#chacha-vs-salsa20) -- use ChaCha

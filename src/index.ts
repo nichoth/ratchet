@@ -45,6 +45,23 @@ export interface SerializedKeys {
     publicKey:string;
 }
 
+export type onetimePreKeys = X25519Keys
+
+export interface IdentityBundle {
+    publicKey:Ed25519Keys['publicKey'];  // ID keys, for signing
+    privateKey:Ed25519Keys['privateKey'];
+    signedPreKey:Uint8Array;
+    onetimePreKeys:X25519Keys[];
+    ephemeralKey:X25519Keys;
+}
+
+export function createId ():IdentityBundle {
+    return {
+        ...createEd(),
+
+    }
+}
+
 /**
  * Create a new Edwards keypair.
  *
